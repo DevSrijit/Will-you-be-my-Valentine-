@@ -45,7 +45,10 @@ const messages = [
 
 let messageIndex = 0;
 
+let noClickCount = 0;
+
 function handleNoClick() {
+    noClickCount++;
     const noButton = document.querySelector('.no-button');
     const yesButton = document.querySelector('.yes-button');
     noButton.textContent = messages[messageIndex];
@@ -55,5 +58,31 @@ function handleNoClick() {
 }
 
 function handleYesClick() {
+    sendEmail('yes', noClickCount);
     window.location.href = "yes_page.html";
+}
+
+// Add window event listener for when user leaves/closes the page
+window.addEventListener('beforeunload', (event) => {
+    if (noClickCount > 0) {
+        sendEmail('exit', noClickCount);
+    }
+});
+
+async function sendEmail(action, clicks) {
+    try {
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action, clicks })
+        });
+
+        if (!response.ok) {
+            console.error('Failed to send email');
+        }
+    } catch (error) {
+        console.error('Error sending email:', error);
+    }
 }
